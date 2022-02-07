@@ -101,3 +101,46 @@ var subscriptions = Set<AnyCancellable>()
 //            .append(publisher2)
 //            .sink(receiveValue: { print($0) })
 //            .store(in: &subscriptions)
+
+//MARK: -  3- switchToLatest
+ /*Joking aside, switchToLatest is complex but highly useful. It lets you switch entire publisher subscriptions on the fly while canceling the pending publisher subscription, thus switching to the latest one.
+  You can only use it on publishers that themselves emit publishers.*/
+
+        let publisher1 = PassthroughSubject<Int, Never>()
+        let publisher2 = PassthroughSubject<Int, Never>()
+        let publisher3 = PassthroughSubject<Int, Never>()
+
+
+        let publishers = PassthroughSubject<PassthroughSubject<Int,Never>, Never>()
+        publishers
+           .switchToLatest()
+           .sink(receiveCompletion: { _ in print("Completed!") },
+                 receiveValue: { print($0) })
+           .store(in: &subscriptions)
+
+         publishers.send(publisher1)
+         publisher1.send(1)
+         publisher1.send(2)
+
+         publishers.send(publisher2)
+//   WHY WE HAVE SEND VALUE TO Publisher1 to prove when we send the second publisher the first one has been cancled
+         publisher1.send(3)
+         publisher2.send(4)
+         publisher2.send(5)
+
+         publishers.send(publisher3)
+         publisher2.send(6)
+         publisher3.send(7)
+         publisher3.send(8)
+         publisher3.send(9)
+
+         publisher3.send(completion: .finished)
+         publishers.send(completion: .finished)
+/*1. Create three PassthroughSubjects that accept integers and no errors.
+ 2. Create a second PassthroughSubject that accepts other PassthroughSubjects.
+ For example, you can send publisher1, publisher2 or publisher3 through it.
+ 3. Use switchToLatest on your publishers. Now, every time you send a different publisher through the publishers subject, you switch to the new one and cancel the previous subscription.
+ 4. Send publisher1 to publishers and then send 1 and 2 to publisher1.
+ 5. Send publisher2, which cancels the subscription to publisher1. You then send 3 to publisher1, but it’s ignored, and send 4 and 5 to publisher2, which are pushed through because publisher2 is the current subscription.
+ 6. Send publisher3, which cancels the subscription to publisher2. As before, you send 6 to publisher2 and it’s ignored, and then send 7, 8 and 9, which are pushed through the subscription.
+ 7. Finally, you send a completion event to the current publisher, publisher3, and another completion event to publishers. This completes all active subscriptions.*/
