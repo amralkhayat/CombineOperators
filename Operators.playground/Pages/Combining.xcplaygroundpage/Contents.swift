@@ -106,36 +106,47 @@ var subscriptions = Set<AnyCancellable>()
  /*Joking aside, switchToLatest is complex but highly useful. It lets you switch entire publisher subscriptions on the fly while canceling the pending publisher subscription, thus switching to the latest one.
   You can only use it on publishers that themselves emit publishers.*/
 
-        let publisher1 = PassthroughSubject<Int, Never>()
-        let publisher2 = PassthroughSubject<Int, Never>()
-        let publisher3 = PassthroughSubject<Int, Never>()
+//        let publisher1 = PassthroughSubject<Int, Never>()
+//        let publisher2 = PassthroughSubject<Int, Never>()
+//        let publisher3 = PassthroughSubject<Int, Never>()
+//
+//
+//        let publishers = PassthroughSubject<PassthroughSubject<Int,Never>, Never>()
+//        publishers
+//           .switchToLatest()
+//           .sink(receiveCompletion: { _ in print("Completed!") },
+//                 receiveValue: { print($0) })
+//           .store(in: &subscriptions)
+//
+//         publishers.send(publisher1)
+//         publisher1.send(1)
+//         publisher1.send(2)
 
-
-        let publishers = PassthroughSubject<PassthroughSubject<Int,Never>, Never>()
-        publishers
-           .switchToLatest()
-           .sink(receiveCompletion: { _ in print("Completed!") },
-                 receiveValue: { print($0) })
-           .store(in: &subscriptions)
-
-         publishers.send(publisher1)
-         publisher1.send(1)
-         publisher1.send(2)
-
-         publishers.send(publisher2)
+//         publishers.send(publisher2)
 //   WHY WE HAVE SEND VALUE TO Publisher1 to prove when we send the second publisher the first one has been cancled
-         publisher1.send(3)
-         publisher2.send(4)
-         publisher2.send(5)
+//         publisher1.send(3)
+//         publisher2.send(4)
+//         publisher2.send(5)
+//
+//         publishers.send(publisher3)
+//         publisher2.send(6)
+//         publisher3.send(7)
+//         publisher3.send(8)
+//         publisher3.send(9)
+//
+//         publisher3.send(completion: .finished)
+//         publishers.send(completion: .finished)
 
-         publishers.send(publisher3)
-         publisher2.send(6)
-         publisher3.send(7)
-         publisher3.send(8)
-         publisher3.send(9)
+        // outPut
+        //1
+        //2
+        //4
+        //5
+        //7
+        //8
+        //9
+        //Completed!
 
-         publisher3.send(completion: .finished)
-         publishers.send(completion: .finished)
 /*1. Create three PassthroughSubjects that accept integers and no errors.
  2. Create a second PassthroughSubject that accepts other PassthroughSubjects.
  For example, you can send publisher1, publisher2 or publisher3 through it.
@@ -144,3 +155,37 @@ var subscriptions = Set<AnyCancellable>()
  5. Send publisher2, which cancels the subscription to publisher1. You then send 3 to publisher1, but it’s ignored, and send 4 and 5 to publisher2, which are pushed through because publisher2 is the current subscription.
  6. Send publisher3, which cancels the subscription to publisher2. As before, you send 6 to publisher2 and it’s ignored, and then send 7, 8 and 9, which are pushed through the subscription.
  7. Finally, you send a completion event to the current publisher, publisher3, and another completion event to publishers. This completes all active subscriptions.*/
+//MARK: -  3- merge(with:)
+//This operator interleaves emissions from different publishers of the same type, like so
+ 
+//// 1
+//  let publisher1 = PassthroughSubject<Int, Never>()
+//  let publisher2 = PassthroughSubject<Int, Never>()
+//// 2
+//  publisher1
+//    .merge(with: publisher2)
+//    .sink(receiveCompletion: { _ in print("Completed") },
+//          receiveValue: { print($0) })
+//    .store(in: &subscriptions)
+//// 3
+//  publisher1.send(1)
+//  publisher1.send(2)
+//  publisher2.send(3)
+//  publisher1.send(4)
+//  publisher2.send(5)
+//// 4
+//  publisher1.send(completion: .finished)
+//  publisher2.send(completion: .finished)
+
+//// OUTPUT
+//1
+//2
+//3
+//4
+//5
+//Completed
+
+/*1. Create two PassthroughSubjects that accept and emit integer values and will not emit an error.
+ 2. Merge publisher1 with publisher2, interleaving the emitted values from both. Combine offers overloads that let you merge up to eight different publishers.
+ 3. You add 1 and 2 to publisher1, then add 3 to publisher2, then add 4 to publisher1 again and finally add 5 to publisher2.
+ 4. You send a completion event to both publisher1 and publisher2.*/
