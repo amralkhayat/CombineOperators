@@ -155,7 +155,7 @@ var subscriptions = Set<AnyCancellable>()
  5. Send publisher2, which cancels the subscription to publisher1. You then send 3 to publisher1, but it’s ignored, and send 4 and 5 to publisher2, which are pushed through because publisher2 is the current subscription.
  6. Send publisher3, which cancels the subscription to publisher2. As before, you send 6 to publisher2 and it’s ignored, and then send 7, 8 and 9, which are pushed through the subscription.
  7. Finally, you send a completion event to the current publisher, publisher3, and another completion event to publishers. This completes all active subscriptions.*/
-//MARK: -  3- merge(with:)
+//MARK: -  4- merge(with:)
 //This operator interleaves emissions from different publishers of the same type, like so
  
 //// 1
@@ -189,7 +189,7 @@ var subscriptions = Set<AnyCancellable>()
  2. Merge publisher1 with publisher2, interleaving the emitted values from both. Combine offers overloads that let you merge up to eight different publishers.
  3. You add 1 and 2 to publisher1, then add 3 to publisher2, then add 4 to publisher1 again and finally add 5 to publisher2.
  4. You send a completion event to both publisher1 and publisher2.*/
-//MARK: -  4- combineLatest
+//MARK: -  5- combineLatest
 //combineLatest is another operator that lets you combine different publishers. It also lets you combine publishers of different value types.which can be extremely useful. However, instead of interleaving the emissions of all publishers, it emits a tuple with the latest values of all publishers whenever any of them emit a value.One catch though: The origin publisher and every publisher passed to combineLatest must emit at least one value before combineLatest will emit anything.
 //    // 1
 //      let publisher1 = PassthroughSubject<Int, Never>()
@@ -222,7 +222,7 @@ var subscriptions = Set<AnyCancellable>()
  3. Send 1 and 2 to publisher1, then "a" and "b" to publisher2, then 3 to publisher1 and finally "c" to publisher2.
  4. Send a completion event to both publisher1 and publisher2.*/
 //You might notice that the 1 emitted from publisher1 is never pushed through combineLatest. That’s because combineLatest only combines once every publisher emits at least one value. Here, that condition is true only after "a" emits, at which point the latest emitted value from publisher1 is 2. That’s why the first emission is (2, "a")
-//MARK: -  4- ZIP
+//MARK: -  6- ZIP
 //This operator works similarly, emitting tuples of paired values in the same indexes. It waits for each publisher to emit an item, then emits a single tuple of items after all publishers have emitted an value at the current index.
 
 //// 1
