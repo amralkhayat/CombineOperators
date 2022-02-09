@@ -189,7 +189,7 @@ var subscriptions = Set<AnyCancellable>()
  2. Merge publisher1 with publisher2, interleaving the emitted values from both. Combine offers overloads that let you merge up to eight different publishers.
  3. You add 1 and 2 to publisher1, then add 3 to publisher2, then add 4 to publisher1 again and finally add 5 to publisher2.
  4. You send a completion event to both publisher1 and publisher2.*/
-//MARK: -  3- combineLatest
+//MARK: -  4- combineLatest
 //combineLatest is another operator that lets you combine different publishers. It also lets you combine publishers of different value types.which can be extremely useful. However, instead of interleaving the emissions of all publishers, it emits a tuple with the latest values of all publishers whenever any of them emit a value.One catch though: The origin publisher and every publisher passed to combineLatest must emit at least one value before combineLatest will emit anything.
 //    // 1
 //      let publisher1 = PassthroughSubject<Int, Never>()
@@ -222,3 +222,33 @@ var subscriptions = Set<AnyCancellable>()
  3. Send 1 and 2 to publisher1, then "a" and "b" to publisher2, then 3 to publisher1 and finally "c" to publisher2.
  4. Send a completion event to both publisher1 and publisher2.*/
 //You might notice that the 1 emitted from publisher1 is never pushed through combineLatest. That’s because combineLatest only combines once every publisher emits at least one value. Here, that condition is true only after "a" emits, at which point the latest emitted value from publisher1 is 2. That’s why the first emission is (2, "a")
+//MARK: -  4- ZIP
+//This operator works similarly, emitting tuples of paired values in the same indexes. It waits for each publisher to emit an item, then emits a single tuple of items after all publishers have emitted an value at the current index.
+
+//// 1
+//let publisher1 = PassthroughSubject<Int, Never>()
+//let publisher2 = PassthroughSubject<String, Never>()
+//// 2
+//publisher1
+//    .zip(publisher2)
+//    .sink(receiveCompletion: { _ in print("Completed") },
+//          receiveValue: { print("P1: \($0), P2: \($1)") })
+//    .store(in: &subscriptions)
+//// 3
+//publisher1.send(1)
+//publisher1.send(2)
+//publisher2.send("a")
+//publisher2.send("b")
+//publisher1.send(3)
+//publisher2.send("c")
+//publisher2.send("d")
+//// 4
+//publisher1.send(completion: .finished)
+//publisher2.send(completion: .finished)
+
+//P1: 1, P2: a
+//P1: 2, P2: b
+//P1: 3, P2: c
+//Completed
+
+//Notice how each emitted value "waits" for the other zipped publisher to emit an value. 1 waits for the first emission from the second publisher, so you get (1, "a"). Likewise, 2 waits for the next emission from the second publisher, so you get (2, "b"). The last emitted value from the second publisher, "d", is ignored since there is no corresponding emission from the first publisher to pair with.
